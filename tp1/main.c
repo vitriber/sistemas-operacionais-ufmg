@@ -3,37 +3,39 @@
 #include <pthread.h>
 
 typedef struct {
-    int idx, length;
-    char name[50];
+    const char *name;
+    pthread_t thread;
+} friend;
+
+pthread_mutex_t forno;
+
+pthread_cond_t enfileirar_membro;
+pthread_cond_t regras_precedencia;
+
+void *friends_func(void *arg) {
+
+    friend *p_ptr = NULL;
+    p_ptr = (friend*)arg;
+
+    
+    printf("Thread %s – value %ld\n", p_ptr->name, pthread_self());
+    
 }
 
-thread_arg, *ptr_thread_arg;
-
-pthread_t threads[2];
-
-void *thread_func(void *arg) {
-    ptr_thread_arg targ = (ptr_thread_arg)arg;
+void main(void)
+{
+    const char *nameList[] = { "Sheldon", "Leonard", "Howard", "Stuart", "Kripke", "Any", "Bernadette", "Penny" };
+    friend** friends = malloc(sizeof(*friends)*5);
 
     int i;
 
-    for(i=targ->idx; i<(targ->idx + targ->length); i++) {
-        printf('Thread %d – value %d\n', pthread_self(), i);
+    for (i = 0; i < 9; i++) {
+        friends[i] = malloc(sizeof(*friends[i]));
+        friends[i]->name = nameList[i];
+        pthread_create( &friends[i]->thread, NULL, friends_func, friends[i]);
     }
-}
-
-int main(int argc, char **argv) {
-    thread_arg arguments[2];
-    
-    int i;
-    
-    for(i=0; i<2; i++) {
-        arguments[i].idx = i * 10;
-        arguments[i].length = 10;
-        pthread_create(&(threads[i]), NULL, thread_func,
-        &(arguments[i]));
-    }
-
-    for(i=0; i<2; i++) {
-        pthread_join(threads[i], NULL);
-    }
-}
+ 
+    // for(i=0; i<2; i++) {
+    //     pthread_join(threads[i], NULL);
+    // }
+};
