@@ -22,7 +22,7 @@ void *friends_func(void *arg) {
     //printf("Thread %s – value %ld\n", p_ptr->name, pthread_self());
 
     while(j < it) {       
-         
+
         printf("%s quer usar o forno\n", p_ptr->name);
         sleep(3);
  
@@ -56,12 +56,11 @@ void main( int argc, char *argv[] )  {
     int sizeList = sizeof nameList / sizeof nameList[0];
     int i = 0;
     
-    friend** friends = malloc(sizeof(*friends)*sizeList);
-    
+    friend** friends = malloc(sizeof(*friends)*sizeList);    
 
     if (pthread_mutex_init(&oven, NULL) != 0)
     {
-        printf("\n mutex init failed\n");
+        printf("\n Falha na inicialização do mutex.\n");
         return;
     }
 
