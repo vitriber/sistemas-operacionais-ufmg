@@ -31,6 +31,27 @@ bool ready(Friend f) {
         names.push_back("Leonard");
     else if(f.name == "Howard")
         names.push_back("Sheldon");
+    else if(f.name == "Bernadete")
+    {
+        names.push_back("Sheldon");    
+        names.push_back("Leonard");    
+        names.push_back("Howard");
+        names.push_back("Penny");
+        names.push_back("Amy");
+    }
+    else if(f.name == "Penny")
+    {
+        names.push_back("Sheldon");
+        names.push_back("Leonard");    
+        names.push_back("Howard");        
+        names.push_back("Amy");
+    }
+    else if(f.name == "Amy")
+    {
+        names.push_back("Sheldon");
+        names.push_back("Leonard");    
+        names.push_back("Howard");
+    }
     else if(f.name == "Leonard")
         names.push_back("Howard");    
     else if(f.name == "Stuart")
@@ -38,6 +59,9 @@ bool ready(Friend f) {
         names.push_back("Sheldon");    
         names.push_back("Leonard");    
         names.push_back("Howard");    
+        names.push_back("Amy");
+        names.push_back("Penny");
+        names.push_back("Bernadete");
     }
     else if(f.name == "Kripke")
     {
@@ -45,6 +69,9 @@ bool ready(Friend f) {
         names.push_back("Leonard");    
         names.push_back("Howard"); 
         names.push_back("Stuart");
+        names.push_back("Amy");
+        names.push_back("Penny");
+        names.push_back("Bernadete");
     }
 
     cout << "---------------------- \n" << endl;       
@@ -85,14 +112,40 @@ void friends_func(Friend f) {
     
     while(j < it) {                            
 
-        std::unique_lock<std::mutex> locker(oven);                           
+        std::unique_lock<std::mutex> locker(oven); //, std::defer_lock);                                           
 
         cout << f.name << " quer usar o forno \n" << endl;        
-        sleep(3);             
+        sleep(3);
 
-        if (!ready(f)) rules.wait(locker); else rules.notify_one();            
+        /*if (locker.try_lock()) 
+        {
+            sleep(1);
+            cout << "\nRAJ\n" << endl;                    
+            cout << "Nome: " << f.name << "\n" << endl;
+            //locker.unlock();     
+        }            
+        else            
+        {
+            sleep(1);
+            cout << "\nSEM DEADLOCK\n" << endl;
+            cout << "Nome: " << f.name << "\n" << endl;
+        } */           
+    
+        if (!ready(f)) 
+        {
+            rules.wait(locker);            
+        }        
+        else 
+        {
+            rules.notify_one();                   
+        }
 
-        locker.unlock();
+        if (locker.try_lock())  //true can be left out
+            std::cout << "lock acquired" << std::endl;
+        else
+            std::cout << "lock notacquired" << std::endl;
+
+        locker.unlock();           
         
         cout << f.name << " começa a esquentar algo \n" << endl;
         sleep(1); 
