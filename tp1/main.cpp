@@ -30,66 +30,27 @@ bool ready(Friend f) {
     if(f.name == "Sheldon")    
         names.push_back("Leonard");
     else if(f.name == "Howard")
-        names.push_back("Sheldon");
-    else if(f.name == "Bernadete")
-    {
         names.push_back("Sheldon");    
-        names.push_back("Leonard");    
-        names.push_back("Howard");
-        names.push_back("Penny");
-        names.push_back("Amy");
-    }
-    else if(f.name == "Penny")
-    {
-        names.push_back("Sheldon");
-        names.push_back("Leonard");    
-        names.push_back("Howard");        
-        names.push_back("Amy");
-    }
-    else if(f.name == "Amy")
-    {
-        names.push_back("Sheldon");
-        names.push_back("Leonard");    
-        names.push_back("Howard");
-    }
     else if(f.name == "Leonard")
         names.push_back("Howard");    
     else if(f.name == "Stuart")
     {
         names.push_back("Sheldon");    
         names.push_back("Leonard");    
-        names.push_back("Howard");    
-        names.push_back("Amy");
-        names.push_back("Penny");
-        names.push_back("Bernadete");
+        names.push_back("Howard");                            
     }
     else if(f.name == "Kripke")
     {
         names.push_back("Sheldon");    
         names.push_back("Leonard");    
         names.push_back("Howard"); 
-        names.push_back("Stuart");
-        names.push_back("Amy");
-        names.push_back("Penny");
-        names.push_back("Bernadete");
-    }
-
-    cout << "---------------------- \n" << endl;       
-
-    cout << f.name << " preparado? \n" << endl;
+        names.push_back("Stuart");        
+    }    
 
     for (Friend x : queue)
         for (string n : names)         
-            if(n == x.name)
-            {                
-                cout << x.name << " superior \n\n" << endl;
-                cout << "---------------------- \n" << endl;
-                return false;
-            }                
-
-    cout << f.name << " está preparado \n\n" << endl;
-    cout << "---------------------- \n" << endl;
-
+            if(n == x.name)                           
+                return false;                          
     return true;
 }
 
@@ -112,51 +73,25 @@ void friends_func(Friend f) {
     
     while(j < it) {                            
 
-        std::unique_lock<std::mutex> locker(oven); //, std::defer_lock);                                           
+        std::unique_lock<std::mutex> locker(oven);
 
         cout << f.name << " quer usar o forno \n" << endl;        
-        sleep(3);
-
-        /*if (locker.try_lock()) 
-        {
-            sleep(1);
-            cout << "\nRAJ\n" << endl;                    
-            cout << "Nome: " << f.name << "\n" << endl;
-            //locker.unlock();     
-        }            
-        else            
-        {
-            sleep(1);
-            cout << "\nSEM DEADLOCK\n" << endl;
-            cout << "Nome: " << f.name << "\n" << endl;
-        } */           
+        std::this_thread::sleep_for(std::chrono::seconds(3));
     
-        if (!ready(f)) 
-        {
-            rules.wait(locker);            
-        }        
-        else 
-        {
-            rules.notify_one();                   
-        }
-
-        if (locker.try_lock())  //true can be left out
-            std::cout << "lock acquired" << std::endl;
-        else
-            std::cout << "lock notacquired" << std::endl;
+        if (!ready(f)) rules.wait(locker); else rules.notify_one();                                   
 
         locker.unlock();           
         
         cout << f.name << " começa a esquentar algo \n" << endl;
-        sleep(1); 
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         
         remove(f);
         
         cout << f.name << " vai comer \n" << endl;
-        sleep(6);                        
+        std::this_thread::sleep_for(std::chrono::seconds(6));
         
         cout << f.name << " voltou para o trabalho \n" << endl;
-        sleep(4);         
+        std::this_thread::sleep_for(std::chrono::seconds(4));
 
         j++;
     }
