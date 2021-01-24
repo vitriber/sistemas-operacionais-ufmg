@@ -1,7 +1,14 @@
-#include <iostream>
-#include <string>
-#include <vector> 
-#include <unistd.h>
+#include <iostream>	
+#include <string>	
+#include <stdio.h>	
+#include <list>	
+#include <vector> 	
+#include <thread>  	
+#include <sstream>	
+#include <mutex>	
+#include <unistd.h>	
+#include <condition_variable>	
+#include <algorithm>
 #include <pthread.h>
 
 using namespace std;
@@ -83,17 +90,6 @@ void *friends_func(void *arg) {
     j++;
 }
 
-void start(){
-
-    Friend leonard;
-    leonard.name = "Leonard";           
-    pthread_create(&leonard.thread, NULL, friends_func, &leonard);        
-
-    Friend sheldon;
-    sheldon.name = "Sheldon";           
-    pthread_create(&sheldon.thread, NULL, friends_func, &sheldon);
-}
-
 int main( int argc, char *argv[] )  {        
 
     if( argc != 2 ) {
@@ -111,7 +107,13 @@ int main( int argc, char *argv[] )  {
         return 0;
     }
 
-    start();    
+    Friend leonard;
+    leonard.name = "Leonard";           
+    pthread_create(&leonard.thread, NULL, friends_func, &leonard);        
+
+    Friend sheldon;
+    sheldon.name = "Sheldon";           
+    pthread_create(&sheldon.thread, NULL, friends_func, &sheldon);
     
     pthread_exit(NULL);
 
