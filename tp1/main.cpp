@@ -28,6 +28,7 @@ vector<string> names = {"Sheldon", "Leonard"};
 
 pthread_mutex_t oven;
 pthread_cond_t rules;
+pthread_cond_t second_pair;
 
 bool ready(Friend f) {    
 
