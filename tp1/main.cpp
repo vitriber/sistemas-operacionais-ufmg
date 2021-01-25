@@ -27,8 +27,8 @@ vector<string> names = {"Sheldon", "Leonard"};
 // vector<string> names = {"Sheldon", "Amy", "Leonard", "Penny", "Howard", "Bernadette", "Stuart", "Kripke"};
 
 pthread_mutex_t oven;
-pthread_cond_t rules;
-pthread_cond_t second_pair;
+pthread_cond_t rules; // controlar as regras de precedência no acesso direto ao forno
+pthread_cond_t second_pair; // variável  para  enfileirar  o  segundo  membro  de  um  casal  se  o  outro  já  estiver esperando
 
 bool ready(Friend f) {    
 
@@ -153,6 +153,8 @@ int main(int argc, char *argv[] )
         indice++; 
         friends.push_back(f);
     }
+
+    // embaralhar lista friends
 
     for (int i = 0; i < 2; i++){
         pthread_create(&friends[i].thread, NULL, friends_func, &friends[i]);
