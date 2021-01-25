@@ -1,13 +1,9 @@
 #include <iostream>	
 #include <string>	
 #include <stdio.h>	
-#include <list>	
-#include <vector> 	
-#include <thread>  	
-#include <sstream>	
-#include <mutex>	
-#include <unistd.h>	
-#include <condition_variable>	
+#include <vector> 	 	
+#include <sstream>		
+#include <unistd.h>		
 #include <algorithm>
 #include <pthread.h>
 
@@ -79,31 +75,31 @@ void remove(Friend f) {
     }  
 }
 
-void friends_func(void *arg) {
+void *friends_func(void *arg) {
 
     Friend *p_ptr = (Friend*)arg; 
     
     int j = 0;      
     
 
-    cout << "💁‍♂️ - " << f.name << " quer usar o forno \n" << endl;
-    f.isqueue = true;
-    queue.push_back(f);   
+    cout << "💁‍♂️ - " << p_ptr->name << " quer usar o forno \n" << endl;
+    p_ptr->isqueue = true;
+    queue.push_back(*p_ptr);   
     sleep(3);
 
     pthread_mutex_lock(&oven);                                          
     
-    cout << "🔥 - " << f.name << " começa a esquentar algo \n" << endl;
+    cout << "🔥 - " << p_ptr->name << " começa a esquentar algo \n" << endl;
     
     sleep(1);
     pthread_mutex_unlock(&oven); 
     
-    remove(f);
+    remove(*p_ptr);
     
-    cout << "🍲 - " << f.name << " vai comer \n" << endl;
+    cout << "🍲 - " << p_ptr->name << " vai comer \n" << endl;
     sleep(6);
     
-    cout << "💻 - " << f.name << " voltou para o trabalho \n" << endl;
+    cout << "💻 - " << p_ptr->name << " voltou para o trabalho \n" << endl;
     sleep(4); 
 
     j++;
@@ -158,7 +154,7 @@ int main(int argc, char *argv[] )
     }
 
     for (Friend x : friends)
-        pthread_create(&f.thread, NULL, friends_func, &f);          
+        pthread_create(&x.thread, NULL, friends_func, &x);          
 
     pthread_exit(NULL);
 
