@@ -20,12 +20,9 @@ struct Friend {
     int pair;      
 };
 
-pthread_mutex_t oven;
-
 vector<Friend> friends;
 vector<Friend> queue;
 
-pthread_cond_t rules;
 vector<string> names = {"Sheldon", "Leonard"};
 // vector<string> names = {"Sheldon", "Amy", "Leonard", "Penny", "Howard", "Bernadette", "Stuart", "Kripke"};
 
@@ -77,36 +74,41 @@ void remove(Friend f) {
 
 void *friends_func(void *arg) {
 
-    Friend *p_ptr = (Friend*)arg; 
+    Friend *p_ptr = (Friend*)arg;
     
-    int j = 0;      
+    int j = 0;
     
+    while(j < it) {
+        cout << "💁‍♂️ - " << p_ptr->name << " quer usar o forno \n" << endl;
+        p_ptr->isqueue = true;
+        queue.push_back(*p_ptr);   
+        sleep(3);
 
-    cout << "💁‍♂️ - " << p_ptr->name << " quer usar o forno \n" << endl;
-    p_ptr->isqueue = true;
-    queue.push_back(*p_ptr);   
-    sleep(3);
+        pthread_mutex_lock(&oven);                                          
+        
+        cout << "🔥 - " << p_ptr->name << " começa a esquentar algo \n" << endl;
+        
+        sleep(1);
+        pthread_mutex_unlock(&oven); 
+        
+        remove(*p_ptr);
+        
+        cout << "🍲 - " << p_ptr->name << " vai comer \n" << endl;
+        sleep(6);
+        
+        cout << "💻 - " << p_ptr->name << " voltou para o trabalho \n" << endl;
+        sleep(4); 
 
-    pthread_mutex_lock(&oven);                                          
-    
-    cout << "🔥 - " << p_ptr->name << " começa a esquentar algo \n" << endl;
-    
-    sleep(1);
-    pthread_mutex_unlock(&oven); 
-    
-    remove(*p_ptr);
-    
-    cout << "🍲 - " << p_ptr->name << " vai comer \n" << endl;
-    sleep(6);
-    
-    cout << "💻 - " << p_ptr->name << " voltou para o trabalho \n" << endl;
-    sleep(4); 
+        j++;
+    }
 
-    j++;
+    return NULL;
 }
 
 void verify(Friend f) {
     sleep(5);
+
+    // Verificar quem está na fila e ver se há deadlock
 
     srand((unsigned int)time(NULL));
     int ramdom = drand48() * 5;
@@ -136,7 +138,6 @@ int main(int argc, char *argv[] )
     for (std::vector<string>::iterator i = names.begin(); i != names.end(); i++)
     {
         Friend f;
-        f.name = "";
         f.name = *i;
         if(f.name == "Sheldon" || f.name == "Amy"){
             f.pair = 1;
@@ -153,8 +154,11 @@ int main(int argc, char *argv[] )
         friends.push_back(f);
     }
 
-    for (Friend x : friends)
-        pthread_create(&x.thread, NULL, friends_func, &x);          
+    for (int i = 0; i < 2; i++){
+        cout << friends[i].name << endl;
+        cout << friends[i].pair << endl;
+        pthread_create(&friends[i].thread, NULL, friends_func, &friends[i]);
+    }         
 
     pthread_exit(NULL);
 
