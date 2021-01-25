@@ -114,17 +114,16 @@ void verify(Friend f) {
     int ramdom = drand48() * 5;
 
     //pthread_cond_signal(&rules);
-}
-
+}      
 
 int main(int argc, char *argv[] )
 {
     int indice = 0;
 
     if( argc != 2 ) {
-      cout << "Error: Informar, como parâmetro, quantidade de iteração.\n" << endl;
-      return 1;
-    }    
+      perror("Error: Informar, como parâmetro, quantidade de iteração.\n");
+      return 0;
+   }
 
     it = atoi(argv[1]);    
 
@@ -155,8 +154,6 @@ int main(int argc, char *argv[] )
     }
 
     for (int i = 0; i < 2; i++){
-        cout << friends[i].name << endl;
-        cout << friends[i].pair << endl;
         pthread_create(&friends[i].thread, NULL, friends_func, &friends[i]);
     }         
 
