@@ -1,34 +1,40 @@
-#include <iostream>
-#include <string>
-#include <stdio.h>
-#include <list>
-#include <vector> 
-#include <thread>  
-#include <sstream>
-#include <mutex>
-#include <unistd.h>
-#include <condition_variable>
+#include <iostream>	
+#include <string>	
+#include <stdio.h>	
+#include <list>	
+#include <vector> 	
+#include <thread>  	
+#include <sstream>	
+#include <mutex>	
+#include <unistd.h>	
+#include <condition_variable>	
 #include <algorithm>
+#include <pthread.h>
+
 
 using namespace std;
 
 int it;
 
-struct Friend {   
+struct Friend {
+    pthread_t thread;  
     string name;
     int idx;
     bool isqueue;
     int pair;      
 };
 
-// list<string> names = {"Sheldon", "Amy", "Leonard", "Penny", "Howard", "Bernadette", "Stuart", "Kripke"};
-list<string> names = {"Sheldon", "Leonard", "Kripke"};
+pthread_mutex_t oven;
 
 vector<Friend> friends;
 vector<Friend> queue;
 
-std::mutex oven;
-std::condition_variable rules;
+pthread_cond_t rules;
+vector<string> names = {"Sheldon", "Leonard"};
+// vector<string> names = {"Sheldon", "Amy", "Leonard", "Penny", "Howard", "Bernadette", "Stuart", "Kripke"};
+
+pthread_mutex_t oven;
+pthread_cond_t rules;
 
 bool ready(Friend f) {    
 
@@ -73,37 +79,34 @@ void remove(Friend f) {
     }  
 }
 
-void friends_func(Friend f) {      
+void friends_func(void *arg) {
+
+    Friend *p_ptr = (Friend*)arg; 
     
     int j = 0;      
     
-    while(j < it) {                            
 
+    cout << "💁‍♂️ - " << f.name << " quer usar o forno \n" << endl;
+    f.isqueue = true;
+    queue.push_back(f);   
+    sleep(3);
 
-        cout << "💁‍♂️ - " << f.name << " quer usar o forno \n" << endl;
-        f.isqueue = true;
-        queue.push_back(f);   
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-
-        std::unique_lock<std::mutex> locker(oven);
+    pthread_mutex_lock(&oven);                                          
     
-        if (!ready(f)) rules.wait(locker); else rules.notify_one();                                           
-        
-        cout << "🔥 - " << f.name << " começa a esquentar algo \n" << endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+    cout << "🔥 - " << f.name << " começa a esquentar algo \n" << endl;
+    
+    sleep(1);
+    pthread_mutex_unlock(&oven); 
+    
+    remove(f);
+    
+    cout << "🍲 - " << f.name << " vai comer \n" << endl;
+    sleep(6);
+    
+    cout << "💻 - " << f.name << " voltou para o trabalho \n" << endl;
+    sleep(4); 
 
-        locker.unlock();   
-        
-        remove(f);
-        
-        cout << "🍲 - " << f.name << " vai comer \n" << endl;
-        std::this_thread::sleep_for(std::chrono::seconds(8));
-        
-        cout << "💻 - " << f.name << " voltou para o trabalho \n" << endl;
-        std::this_thread::sleep_for(std::chrono::seconds(4));
-
-        j++;
-    }
+    j++;
 }
 
 void verify(Friend f) {
@@ -127,11 +130,17 @@ int main(int argc, char *argv[] )
 
     it = atoi(argv[1]);    
 
-    std::vector<std::thread> threads;
+    
+    if (pthread_mutex_init(&oven, NULL) != 0)
+    {
+        perror("Falha na inicialização do mutex.\n");
+        return 0;
+    }
 
-    for (std::list<string>::iterator i = names.begin(); i != names.end(); i++)
+    for (std::vector<string>::iterator i = names.begin(); i != names.end(); i++)
     {
         Friend f;
+        f.name = "";
         f.name = *i;
         if(f.name == "Sheldon" || f.name == "Amy"){
             f.pair = 1;
@@ -148,10 +157,10 @@ int main(int argc, char *argv[] )
         friends.push_back(f);
     }
 
-    for (Friend x : friends)            
-        threads.push_back(std::thread(friends_func, x));          
+    for (Friend x : friends)
+        pthread_create(&f.thread, NULL, friends_func, &f);          
 
-    for (auto& th : threads) th.join();
+    pthread_exit(NULL);
 
-    return 0;
+    return 1;
 }
