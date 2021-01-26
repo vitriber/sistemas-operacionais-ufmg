@@ -25,6 +25,7 @@ Checklist de Tarefas - Código:
 - Foque no comportamento de um personagem e certifique-se de que ele funciona. - OK
 - Depois dispare dois personagens apenas, para evitar que deadlocks aconteçam - OK
 - Inclua o Raj e verifique se  deadlocks  são  detectados
+- Inclua a ordem de prioridades
 - Verifique se os casais funcionam
 - O mecanismo  de  prevenção da  inanição  funciona 
  (p.ex.,  use  apenas  dois  casais  de  altere  os  tempos  das 
