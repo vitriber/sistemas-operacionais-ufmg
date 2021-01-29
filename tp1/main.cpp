@@ -12,17 +12,18 @@
 #include <algorithm>
 #include <random>
 
-#define NUM_THREADS  2
+#define NUM_THREADS  8
 
 using namespace std;
 
 void *init_friend(void *arg);
-int ramdomNumber(int top);
+void *raj_run(void* flag);
 void remove(Friend f);
 void releaseAll();
 
-
 int useForno;
+bool execution_raj = true;
+
 Monitor forno;
 vector<Friend> friends;
 vector<string> names = {"Sheldon", "Amy", "Kripke", "Leonard", "Penny", "Howard", "Bernadette", "Stuart"};
@@ -35,16 +36,23 @@ int main(int argc, char *argv[] )
       return 0;
    }
 
-    useForno = atoi(argv[1]);    
+    useForno = atoi(argv[1]); 
 
-    // Inicialização da MUTEX
+    //inicialização thread raj
+    pthread_t raj;
+
+    if (pthread_create(&raj, NULL, raj_run, &execution_raj) < 0) {
+        perror("Falha na inicialização da thread");
+    }   
+
+    // inicialização da mutex
     if (pthread_mutex_init(&forno.oven, NULL) != 0)
     {
         perror("Falha na inicialização do mutex.\n");
         return 0;
     }
 
-    // Criando vetor de structs do Tipo Friends para inicialização das Threads
+    // criando vetor de structs do tipo friends para inicialização das threads
     for (std::vector<string>::iterator i = names.begin(); i != names.end(); i++)
     {
         Friend f;
@@ -74,27 +82,27 @@ int main(int argc, char *argv[] )
         pthread_create(&friends[i].thread, NULL, init_friend, &friends[i]);
     }
 
-    // Liberando as Threads enquanto elas estiverem na fila
+    // liberando as threads enquanto elas estiverem na fila
     while(forno.queue.size() > 0){
         releaseAll();
-    }       
+    }
+
+    execution_raj = false;       
 
     pthread_mutex_destroy(&forno.oven);
     pthread_exit(NULL);
 
-    return 1;
+    return 0;
 }
 
-int ramdomNumber(int top) {
-        srand(time(NULL));
-        int low = 1;
-       return rand()%(top-low+1) + low;
-}
 
+//remove pessoa da fila
 void remove(Friend f) { 
     for( std::vector<Friend>::iterator iter = forno.queue.begin(); iter != forno.queue.end(); iter++ )
     {
         Friend fr = *iter;
+
+        fr.isQueue = true;
 
         if(fr.name == f.name)
         {            
@@ -104,6 +112,7 @@ void remove(Friend f) {
     }  
 }
 
+//libera todas as pessoas
 void releaseAll() {
     for( std::vector<Friend>::iterator iter = friends.begin(); iter != friends.end(); iter++ )
     {
@@ -114,6 +123,16 @@ void releaseAll() {
     }
 }
 
+void *raj_run(void* flag) {
+    bool execution_raj = ((bool*) flag);
+    while (execution_raj) {
+        sleep(5);
+        forno.verificar();
+    }
+    return NULL;
+}
+
+// cria rotina de execucao
 void *init_friend(void *arg) {
 
     Friend *f = (Friend*)arg;
@@ -141,3 +160,4 @@ void *init_friend(void *arg) {
 
     return NULL;
 }
+

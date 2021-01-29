@@ -10,6 +10,7 @@ class Friend {
     public: 
         int idx;
         int pair; 
+        int isQueue;
         string name;
         
         pthread_t thread; 
@@ -24,8 +25,9 @@ class Friend {
             this->idx = 0;
             this->pair = 0;
             this->name = "";
+            this->isQueue = false;
         };
-        
+
         Friend(string name) {
             this->name = name;
         }

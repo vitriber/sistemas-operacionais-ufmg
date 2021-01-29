@@ -12,6 +12,6 @@ class Monitor {
 
         void esperar(Friend f);
         bool ready(Friend f);
-        void verificar(Friend f);
+        void verificar();
         void realizePair(int num);
 };

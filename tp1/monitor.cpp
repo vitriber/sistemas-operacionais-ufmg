@@ -15,21 +15,25 @@
 using namespace std; 
 
 void Monitor::esperar(Friend f) {
-    cout << "🙂 - "<< f.name << " quer usar o forno" << endl;
+    cout << f.name << " quer usar o forno" << endl;
     queue.push_back(f);
+    f.isQueue = true;
         
     sleep(1+ rand()%5);
 }
 
-void Monitor::verificar(Friend f) {
+void Monitor::verificar() {
     sleep(5);
 
     // Verificar quem está na fila e ver se há deadlock
+    for (Friend x : queue) {
+        if(x.name == "Stuart" || x.name == "Kripke"){
 
-    // srand((unsigned int)time(NULL));
-    // int ramdom = drand48() * 5;
+        }
+    }
 
-    //pthread_cond_signal(&rules);
+    // Liberar um personagem do Deadlock
+
 }
 
 //Libera proximo par
@@ -65,7 +69,6 @@ bool Monitor::ready(Friend f) {
     }
 
     //Libera a thread casal para usar o forno e enfilera a proxima thread do casal
-
     if(pair1 == 2) {
         if(f.pair == 1){
             realizePair(1);
@@ -87,6 +90,7 @@ bool Monitor::ready(Friend f) {
         }
     }
 
+    // Verifica ordem de prioridades
     if(f.name == "Sheldon")    
         names.push_back("Leonard");
     else if(f.name == "Howard")
