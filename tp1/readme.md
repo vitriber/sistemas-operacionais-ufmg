@@ -22,19 +22,19 @@ a ordem dos eventos acima deve variar entre execuções e implementações.
 Você não deve esperar ter exatamente o mesmo resultado
 
 Checklist de Tarefas - Código:
-- Foque no comportamento de um personagem e certifique-se de que ele funciona. - OK
-- Depois dispare dois personagens apenas, para evitar que deadlocks aconteçam - OK
-- Inclua o Raj e verifique se  deadlocks  são  detectados
-- Inclua a ordem de prioridades
-- Verifique se os casais funcionam
-- O mecanismo  de  prevenção da  inanição  funciona 
+[X]Foque no comportamento de um personagem e certifique-se de que ele funciona.
+[X]Depois dispare dois personagens apenas, para evitar que deadlocks aconteçam.
+[]Inclua a ordem de prioridades.
+[X]Lista aleatória de execução.
+[]Inclua o Raj e verifique se  deadlocks  são  detectados.
+[]Verifique se os casais funcionam.
+[]O mecanismo  de  prevenção da  inanição  funciona.
  (p.ex.,  use  apenas  dois  casais  de  altere  os  tempos  das 
  outras  atividades para  fazer  com  que  um  deles  (o  de  maior  prioridade)
 esteja  sempre  querendo  usar  o  forno.
-- Lista aleatória de execução
-- Refatoração para uso de .h e .c e makefile
+[X]Refatoração para uso de .h e .c e makefile.
 
 Checklist de Tarefas - Documentação
-- Resumo
-- Decisões de projeto
-- Bugs
+[]Resumo
+[]Decisões de projeto
+[]Bugs

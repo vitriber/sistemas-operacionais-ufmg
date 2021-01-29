@@ -1,3 +1,6 @@
+#include "friend.h"
+#include "monitor.h"
+
 #include <iostream>	
 #include <string>	
 #include <stdio.h>	
@@ -6,139 +9,47 @@
 #include <unistd.h>		
 #include <algorithm>
 #include <pthread.h>
+#include <algorithm>
+#include <random>
 
+#define NUM_THREADS  2
 
 using namespace std;
 
-int it;
+void *init_friend(void *arg);
+int ramdomNumber(int top);
+void remove(Friend f);
+void releaseAll();
 
-struct Friend {
-    pthread_t thread;  
-    string name;
-    int idx;
-    bool isqueue;
-    int pair;      
-};
 
+int useForno;
+Monitor forno;
 vector<Friend> friends;
-vector<Friend> queue;
+vector<string> names = {"Sheldon", "Amy", "Kripke", "Leonard", "Penny", "Howard", "Bernadette", "Stuart"};
 
-vector<string> names = {"Sheldon", "Leonard"};
-// vector<string> names = {"Sheldon", "Amy", "Leonard", "Penny", "Howard", "Bernadette", "Stuart", "Kripke"};
-
-pthread_mutex_t oven;
-pthread_cond_t rules; // controlar as regras de precedência no acesso direto ao forno
-pthread_cond_t second_pair; // variável  para  enfileirar  o  segundo  membro  de  um  casal  se  o  outro  já  estiver esperando
-
-bool ready(Friend f) {    
-
-    vector<string> names;
-    if(f.name == "Sheldon")    
-        names.push_back("Leonard");
-    else if(f.name == "Howard")
-        names.push_back("Sheldon");    
-    else if(f.name == "Leonard")
-        names.push_back("Howard");    
-    else if(f.name == "Stuart")
-    {
-        names.push_back("Sheldon");    
-        names.push_back("Leonard");    
-        names.push_back("Howard");                            
-    }
-    else if(f.name == "Kripke")
-    {
-        names.push_back("Sheldon");    
-        names.push_back("Leonard");    
-        names.push_back("Howard"); 
-        names.push_back("Stuart");        
-    }    
-
-    for (Friend x : queue)
-        for (string n : names)         
-            if(n == x.name)                           
-                return false;                          
-    return true;
-}
-
-void remove(Friend f) { 
-    for( std::vector<Friend>::iterator iter = queue.begin(); iter != queue.end(); iter++ )
-    {
-        Friend fr = *iter;
-
-        if(fr.name == f.name)
-        {            
-            queue.erase( iter );
-            break;
-        }        
-    }  
-}
-
-void *friends_func(void *arg) {
-
-    Friend *p_ptr = (Friend*)arg;
-    
-    int j = 0;
-    
-    while(j < it) {
-        cout << "💁‍♂️ - " << p_ptr->name << " quer usar o forno \n" << endl;
-        p_ptr->isqueue = true;
-        queue.push_back(*p_ptr);   
-        sleep(3);
-
-        pthread_mutex_lock(&oven);                                          
-        
-        cout << "🔥 - " << p_ptr->name << " começa a esquentar algo \n" << endl;
-        
-        sleep(1);
-        pthread_mutex_unlock(&oven); 
-        
-        remove(*p_ptr);
-        
-        cout << "🍲 - " << p_ptr->name << " vai comer \n" << endl;
-        sleep(6);
-        
-        cout << "💻 - " << p_ptr->name << " voltou para o trabalho \n" << endl;
-        sleep(4); 
-
-        j++;
-    }
-
-    return NULL;
-}
-
-void verify(Friend f) {
-    sleep(5);
-
-    // Verificar quem está na fila e ver se há deadlock
-
-    srand((unsigned int)time(NULL));
-    int ramdom = drand48() * 5;
-
-    //pthread_cond_signal(&rules);
-}      
 
 int main(int argc, char *argv[] )
 {
-    int indice = 0;
-
     if( argc != 2 ) {
       perror("Error: Informar, como parâmetro, quantidade de iteração.\n");
       return 0;
    }
 
-    it = atoi(argv[1]);    
+    useForno = atoi(argv[1]);    
 
-    
-    if (pthread_mutex_init(&oven, NULL) != 0)
+    // Inicialização da MUTEX
+    if (pthread_mutex_init(&forno.oven, NULL) != 0)
     {
         perror("Falha na inicialização do mutex.\n");
         return 0;
     }
 
+    // Criando vetor de structs do Tipo Friends para inicialização das Threads
     for (std::vector<string>::iterator i = names.begin(); i != names.end(); i++)
     {
         Friend f;
         f.name = *i;
+
         if(f.name == "Sheldon" || f.name == "Amy"){
             f.pair = 1;
         }else if(f.name == "Howard" || f.name == "Bernadette"){
@@ -148,19 +59,85 @@ int main(int argc, char *argv[] )
         }else{
             f.pair = 0;
         }
-        f.idx = indice;
-        f.isqueue = false;
-        indice++; 
+
+        pthread_cond_init (&f.rules, NULL);
+        pthread_cond_init (&f.second_pair, NULL);
+
         friends.push_back(f);
     }
 
     // embaralhar lista friends
+    std::shuffle(friends.begin(), friends.end(), std::random_device());
 
-    for (int i = 0; i < 2; i++){
-        pthread_create(&friends[i].thread, NULL, friends_func, &friends[i]);
-    }         
+    // Criando as threads de acordo com a lista de Friends
+    for (int i = 0; i < NUM_THREADS; i++){
+        pthread_create(&friends[i].thread, NULL, init_friend, &friends[i]);
+    }
 
+    // Liberando as Threads enquanto elas estiverem na fila
+    while(forno.queue.size() > 0){
+        releaseAll();
+    }       
+
+    pthread_mutex_destroy(&forno.oven);
     pthread_exit(NULL);
 
     return 1;
+}
+
+int ramdomNumber(int top) {
+        srand(time(NULL));
+        int low = 1;
+       return rand()%(top-low+1) + low;
+}
+
+void remove(Friend f) { 
+    for( std::vector<Friend>::iterator iter = forno.queue.begin(); iter != forno.queue.end(); iter++ )
+    {
+        Friend fr = *iter;
+
+        if(fr.name == f.name)
+        {            
+            forno.queue.erase( iter );
+            break;
+        }        
+    }  
+}
+
+void releaseAll() {
+    for( std::vector<Friend>::iterator iter = friends.begin(); iter != friends.end(); iter++ )
+    {
+        Friend fr = *iter;
+        pthread_cond_signal(&fr.rules);
+        pthread_cond_signal(&fr.second_pair);
+
+    }
+}
+
+void *init_friend(void *arg) {
+
+    Friend *f = (Friend*)arg;
+    
+    int j = 0;
+    
+    while(j < useForno) {
+        forno.esperar(*f);
+ 
+        if (!forno.ready(*f)) {
+            pthread_cond_wait(&f->rules, &forno.oven);
+        }
+
+        pthread_mutex_lock(&forno.oven);     
+        f->eat_something();                               
+        pthread_mutex_unlock(&forno.oven); 
+        
+        remove(*f);
+
+        f->eat();
+        f->back_to_work();
+        
+        j++;
+    }
+
+    return NULL;
 }
